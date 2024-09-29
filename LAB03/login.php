@@ -1,21 +1,28 @@
 <?php
 session_start(); // Start the session
 
+// Initialize error messages
+$username_error = '';
+$password_error = '';
+$error_message = '';
+
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Collect and sanitize input data
     $username = htmlspecialchars($_POST['username']);
-    $password = $_POST['password'];
+    $password = htmlspecialchars($_POST['password']);
 
     // Check if the users.json file exists
     $file = 'users.json';
     if (file_exists($file)) {
         // Read the JSON file and decode the data
         $users = json_decode(file_get_contents($file), true);
+        $user_found = false;
 
         // Loop through users to find a match
         foreach ($users as $user) {
             if ($user['username'] === $username) {
+                $user_found = true; // User found
                 // Verify the password
                 if (password_verify($password, $user['password'])) {
                     // Start a session for the user
@@ -37,14 +44,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     header("Location: personal_Info.php");
                     exit();
                 } else {
-                    echo "Incorrect password.";
-                    exit();
+                    $password_error = "Incorrect password.";
                 }
             }
         }
-        echo "Username not found.";
+        
+        // If username is not found
+        if (!$user_found) {
+            $username_error = "Username not found.";
+        }
     } else {
-        echo "No users registered yet.";
+        $error_message = "No users registered yet.";
     }
 }
 ?>
