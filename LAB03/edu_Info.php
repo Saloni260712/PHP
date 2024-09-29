@@ -7,6 +7,9 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
+// Initialize error messages
+$degree_error = $field_of_study_error = $institution_error = $graduation_year_error = '';
+
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Collect and sanitize input data
@@ -16,8 +19,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $graduation_year = htmlspecialchars($_POST['graduation_year']);
 
     // Validate inputs
-    if ($degree && $field_of_study && $institution && $graduation_year) {
-        // Store data in session
+    $valid = true;
+
+    if (empty($degree)) {
+        $degree_error = "Please enter your highest degree.";
+        $valid = false;
+    }
+
+    if (empty($field_of_study)) {
+        $field_of_study_error = "Please enter your field of study.";
+        $valid = false;
+    }
+
+    if (empty($institution)) {
+        $institution_error = "Please enter the name of your institution.";
+        $valid = false;
+    }
+
+    if (empty($graduation_year)) {
+        $graduation_year_error = "Please enter your graduation year.";
+        $valid = false;
+    } elseif (!is_numeric($graduation_year)) {
+        $graduation_year_error = "Please enter a valid year.";
+        $valid = false;
+    }
+
+    // If all inputs are valid, store them in the session and proceed
+    if ($valid) {
         $_SESSION['degree'] = $degree;
         $_SESSION['field_of_study'] = $field_of_study;
         $_SESSION['institution'] = $institution;
@@ -26,8 +54,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Redirect to the next step
         header("Location: work_Info.php");
         exit();
-    } else {
-        $error_message = "Please fill all fields correctly.";
     }
 }
 ?>
@@ -82,10 +108,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         input[type="text"] {
             width: 100%;
             padding: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box; /* Ensures padding doesn't increase width */
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-bottom: 10px;
         }
         input[type="submit"] {
             margin-top: 10px;
@@ -115,12 +146,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         button:hover {
             background: #c9302c;
         }
-        .error {
-            color: red;
-            font-size: 14px;
-            margin-top: 5px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -135,22 +160,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <form action="edu_Info.php" method="POST">
         <label for="degree">Highest Degree Obtained:</label>
-        <input type="text" id="degree" name="degree" required value="<?php echo $_SESSION['degree'] ?? ''; ?>">
+        <input type="text" id="degree" name="degree" value="<?php echo $_SESSION['degree'] ?? ''; ?>">
+        <?php if (!empty($degree_error)) echo "<p class='error'>$degree_error</p>"; ?>
 
         <label for="field_of_study">Field of Study:</label>
-        <input type="text" id="field_of_study" name="field_of_study" required value="<?php echo $_SESSION['field_of_study'] ?? ''; ?>">
+        <input type="text" id="field_of_study" name="field_of_study" value="<?php echo $_SESSION['field_of_study'] ?? ''; ?>">
+        <?php if (!empty($field_of_study_error)) echo "<p class='error'>$field_of_study_error</p>"; ?>
 
         <label for="institution">Name of Institution:</label>
-        <input type="text" id="institution" name="institution" required value="<?php echo $_SESSION['institution'] ?? ''; ?>">
+        <input type="text" id="institution" name="institution" value="<?php echo $_SESSION['institution'] ?? ''; ?>">
+        <?php if (!empty($institution_error)) echo "<p class='error'>$institution_error</p>"; ?>
 
         <label for="graduation_year">Year of Graduation:</label>
-        <input type="text" id="graduation_year" name="graduation_year" required value="<?php echo $_SESSION['graduation_year'] ?? ''; ?>">
+        <input type="text" id="graduation_year" name="graduation_year" value="<?php echo $_SESSION['graduation_year'] ?? ''; ?>">
+        <?php if (!empty($graduation_year_error)) echo "<p class='error'>$graduation_year_error</p>"; ?>
 
         <input type="submit" value="Next">
         <button onclick="window.location.href='personal_Info.php'; return false;">Previous</button>
         <button onclick="window.location.href='login.html'; return false;">Logout</button>
     </form>
-    <?php if (isset($error_message)) echo "<p class='error'>$error_message</p>"; ?>
 </div>
 
 </body>

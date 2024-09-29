@@ -7,6 +7,9 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 
+// Initialize error messages
+$full_name_error = $email_error = $phone_error = '';
+
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Collect and sanitize input data
@@ -15,17 +18,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $phone = htmlspecialchars($_POST['phone']);
 
     // Validate inputs
-    if ($full_name && $email && $phone) {
-        // Store data in session
+    $valid = true;
+
+    // Check full name
+    if (empty($full_name)) {
+        $full_name_error = "Please enter your full name.";
+        $valid = false;
+    }
+
+    // Check email
+    if (empty($_POST['email'])) {
+        $email_error = "Please enter your email address.";
+        $valid = false;
+    } elseif (!$email) {
+        $email_error = "Invalid email format.";
+        $valid = false;
+    }
+
+    // Check phone number
+    if (empty($phone)) {
+        $phone_error = "Please enter your phone number.";
+        $valid = false;
+    }
+
+    // If all inputs are valid, store them in the session and proceed
+    if ($valid) {
         $_SESSION['full_name'] = $full_name;
-        $_SESSION['email'] = $email; // Overwrite the session email if needed
+        $_SESSION['email'] = $_POST['email']; // Store raw email to preserve input in case of invalid format
         $_SESSION['phone'] = $phone;
 
         // Redirect to the next step
         header("Location: edu_Info.php");
         exit();
-    } else {
-        $error_message = "Please fill all fields correctly.";
     }
 }
 ?>
@@ -80,10 +104,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         input[type="text"], input[type="email"] {
             width: 100%;
             padding: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            box-sizing: border-box; /* Ensures padding doesn't increase width */
+            box-sizing: border-box;
         }
         input[type="submit"] {
             margin-top: 10px;
@@ -102,7 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         button {
             width: 100%;
             padding: 10px;
-            background: #d9534f; /* Bootstrap danger color */
+            background: #d9534f;
             border: none;
             border-radius: 4px;
             color: white;
@@ -117,7 +141,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             color: red;
             font-size: 14px;
             margin-top: 5px;
-            text-align: center;
+            text-align: left;
         }
     </style>
 </head>
@@ -133,18 +157,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <form action="personal_Info.php" method="POST">
         <label for="full_name">Full Name:</label>
-        <input type="text" id="full_name" name="full_name" required value="<?php echo $_SESSION['full_name'] ?? ''; ?>">
+        <input type="text" id="full_name" name="full_name" value="<?php echo $_SESSION['full_name'] ?? ''; ?>">
+        <?php if (!empty($full_name_error)) echo "<p class='error'>$full_name_error</p>"; ?>
 
         <label for="email">Email Address:</label>
-        <input type="email" id="email" name="email" value="<?php echo $_SESSION['email'] ?? ''; ?>" required>
+        <input type="email" id="email" name="email" value="<?php echo $_SESSION['email'] ?? ''; ?>">
+        <?php if (!empty($email_error)) echo "<p class='error'>$email_error</p>"; ?>
 
         <label for="phone">Phone Number:</label>
-        <input type="text" id="phone" name="phone" required value="<?php echo $_SESSION['phone'] ?? ''; ?>">
+        <input type="text" id="phone" name="phone" value="<?php echo $_SESSION['phone'] ?? ''; ?>">
+        <?php if (!empty($phone_error)) echo "<p class='error'>$phone_error</p>"; ?>
 
         <input type="submit" value="Next">
         <button onclick="window.location.href='login.html'; return false;">Logout</button>
     </form>
-    <?php if (isset($error_message)) echo "<p class='error'>$error_message</p>"; ?>
 </div>
 
 </body>
